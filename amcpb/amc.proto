@@ -18,3 +18,9 @@ message UserResponse {
     User user = 1;
 }
 
+service UserService{
+
+    rpc User(UserRequest) returns(UserResponse) {};
+
+}
+
