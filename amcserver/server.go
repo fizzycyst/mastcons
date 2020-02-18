@@ -23,8 +23,7 @@ type Person struct {
 }
 
 func (*server) User(ctx context.Context, req *amcpb.UserRequest) (*amcpb.UserResponse, error) {
-	fmt.Printf("User function run with %v", req)
-	var nullPerson Person
+	fmt.Printf("User function run with %v\n", req)
 
 	searchname := req.GetUsername()
 
@@ -32,10 +31,6 @@ func (*server) User(ctx context.Context, req *amcpb.UserRequest) (*amcpb.UserRes
 
 	if err != nil {
 		return nil, err
-	}
-
-	if ourUser == nullPerson {
-		return nil, nil
 	}
 
 	res := &amcpb.User{
@@ -48,8 +43,7 @@ func (*server) User(ctx context.Context, req *amcpb.UserRequest) (*amcpb.UserRes
 	}, nil
 }
 
-func searchDb(user string) (Person, error) {
-	var dummyPerson Person
+func searchDb(user string) (*Person, error) {
 	db, err := sql.Open("mysql",
 		"root:goroutine@tcp(127.0.0.1:3306)/amc")
 	if err != nil {
@@ -70,10 +64,9 @@ func searchDb(user string) (Person, error) {
 	if err != nil {
 		if err == sql.ErrNoRows {
 			//log.Fatalf("There were no rows returned %v", err)
-			return dummyPerson, nil
-		} else {
-			log.Fatal(err)
+			return nil, err
 		}
+		log.Fatal(err)
 	}
 
 	//defer rows.Close()
@@ -82,8 +75,7 @@ func searchDb(user string) (Person, error) {
 	newPerson.username = username
 	newPerson.status = status
 	newPerson.communityID = communityID
-
-	return newPerson, nil
+	return &newPerson, nil
 
 }
 
