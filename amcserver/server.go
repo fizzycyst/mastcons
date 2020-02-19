@@ -41,8 +41,9 @@ func (*server) User(ctx context.Context, req *amcpb.UserRequest) (*amcpb.UserRes
 
 	ourUser, err := searchDb(searchname)
 
-	if err == noRows() {
-		log.Printf("We finally have no rows caught")
+	if err == sql.ErrNoRows {
+		fmt.Printf("%v does not exist in database\n", searchname)
+		return nil, sql.ErrNoRows
 	}
 
 	if err != nil {
@@ -84,8 +85,7 @@ func searchDb(user string) (*Person, error) {
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			log.Printf("There were no rows returned %v", noRows())
-			return nil, noRows()
+			return nil, sql.ErrNoRows
 		}
 		log.Fatal(err)
 	}
