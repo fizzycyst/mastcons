@@ -15,6 +15,11 @@ import (
 
 type server struct{}
 
+//NoRowsError Exported for fun
+type NoRowsError struct {
+	msg string
+}
+
 // Person ready for use within this server
 type Person struct {
 	username    string
@@ -22,6 +27,13 @@ type Person struct {
 	communityID int32
 }
 
+func (error *NoRowsError) Error() string {
+	return error.msg
+}
+
+func noRows() error {
+	return &NoRowsError{"User Does Not Exist"}
+}
 func (*server) User(ctx context.Context, req *amcpb.UserRequest) (*amcpb.UserResponse, error) {
 	fmt.Printf("User function run with %v\n", req)
 
@@ -29,7 +41,12 @@ func (*server) User(ctx context.Context, req *amcpb.UserRequest) (*amcpb.UserRes
 
 	ourUser, err := searchDb(searchname)
 
+	if err == noRows() {
+		log.Printf("We finally have no rows caught")
+	}
+
 	if err != nil {
+		log.Printf("Checking error %v", err)
 		return nil, err
 	}
 
@@ -45,7 +62,11 @@ func (*server) User(ctx context.Context, req *amcpb.UserRequest) (*amcpb.UserRes
 
 func searchDb(user string) (*Person, error) {
 	db, err := sql.Open("mysql",
-		"root:goroutine@tcp(127.0.0.1:3306)/amc")
+		"root:71ODp4rXjNmr0fJ0@tcp(10.10.0.9:3306)/ums2") // Not for production..
+	/*
+		db, err := sql.Open("mysql",
+			"root:goroutine@tcp(127.0.0.1:3306)/amc")
+	*/
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -57,14 +78,14 @@ func searchDb(user string) (*Person, error) {
 
 	var username string
 	var status string
-	var communityID int32
+	var rootCommunityID int32
 
-	err = db.QueryRow("select username, status, communityId from users where username = ?", user).Scan(&username, &status, &communityID)
+	err = db.QueryRow("select username, status, rootCommunityId from Users where username = ?", user).Scan(&username, &status, &rootCommunityID)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			//log.Fatalf("There were no rows returned %v", err)
-			return nil, err
+			log.Printf("There were no rows returned %v", noRows())
+			return nil, noRows()
 		}
 		log.Fatal(err)
 	}
@@ -74,7 +95,7 @@ func searchDb(user string) (*Person, error) {
 	var newPerson Person
 	newPerson.username = username
 	newPerson.status = status
-	newPerson.communityID = communityID
+	newPerson.communityID = rootCommunityID
 	return &newPerson, nil
 
 }

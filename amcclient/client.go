@@ -22,7 +22,11 @@ func main() {
 
 	c := amcpb.NewUserServiceClient(cc)
 
+	doSingleUser(c, "Hypatia11102")
+	doSingleUser(c, "Russell Ealing")
 	doSingleUser(c, "Owen")
+	doSingleUser(c, "Russell Ealing")
+
 }
 
 func doSingleUser(c amcpb.UserServiceClient, user string) {
@@ -35,7 +39,9 @@ func doSingleUser(c amcpb.UserServiceClient, user string) {
 	res, err := c.User(context.Background(), req)
 
 	if err != nil {
-		log.Fatalf("Error getting user %v", err)
+
+		log.Printf("Error getting user %v", err)
+		return
 	}
 
 	fmt.Printf("Response from User %v", res.User)

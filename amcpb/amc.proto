@@ -5,13 +5,13 @@ package amc;
 option go_package="amcpb";
 
 message User {
-    string username =1;
-    string status =2;
+    string username = 1;
+    string status = 2;
     int32 communityId = 3;
 }
 
 message UserRequest {
-    string username =1;
+    string username = 1;
 }
 
 message UserResponse {
